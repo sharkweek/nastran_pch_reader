@@ -180,10 +180,51 @@ class PchParser:
         if subcase in self.parsed_data[request]:
             return self.parsed_data[request][subcase]
         else:
-            raise KeyError('%s data for subase %d is not found' % (request, subcase))
+            raise KeyError('%s data for subase %s is not found' % (request, subcase))
 
-    def get_accelerations(self, subcase):
-        return self.__get_data_per_request('ACCELERATION', subcase)
+    def get_accelerations(self, subcase, entityID=None, component=None):
+        if (entityID == None and component != entityID) or \
+                (component == None and entityID != component):
+            raise KeyError("Need both Entity ID and direction component")
+
+        elif entityID == None and component == None:
+            return self.__get_data_per_request('ACCELERATION', subcase)
+
+        elif component == 'tx':
+            tx_data = []
+            for each in self.get_accelerations(subcase)[entityID]:
+                tx_data.append(each[0])
+            return tx_data
+
+        elif component == 'ty':
+            ty_data = []
+            for each in self.get_accelerations(subcase)[entityID]:
+                ty_data.append(each[1])
+            return ty_data
+
+        elif component == 'tz':
+            tz_data = []
+            for each in self.get_accelerations(subcase)[entityID]:
+                tz_data.append(each[2])
+            return tz_data
+
+        elif component == 'rx':
+            rx_data = []
+            for each in self.get_accelerations(subcase)[entityID]:
+                rx_data.append(each[3])
+            return rx_data
+
+        elif component == 'ry':
+            ry_data = []
+            for each in self.get_accelerations(subcase)[entityID]:
+                ry_data.append(each[4])
+            return ry_data
+
+        elif component == 'rz':
+            rz_data = []
+            for each in self.get_accelerations(subcase)[entityID]:
+                rz_data.append(each[5])
+            return rz_data
 
     def get_displacements(self, subcase):
         return self.__get_data_per_request('DISPLACEMENTS', subcase)
@@ -199,3 +240,47 @@ class PchParser:
 
     def get_frequencies(self, subcase):
         return sorted(self.parsed_data['FREQUENCY'][subcase])
+
+
+class SimplePch:
+    """Parser for a simple punch file with no headers. Useful for random
+    vibration punch output.
+    """
+
+    def __init__(self, filename):
+        # initiate dictionary
+        self.entitylist = []
+        self.data = {}
+
+        # start reading
+        with open(filename, 'r') as pch:
+            # read only first 72 characters from the punch file
+            for line in pch:
+                line = line[0:72]
+
+                # check for new entity ID
+                if line.startswith('$'):
+                    entityID = int([i for i in line.split(' ') if i != ''][2])
+
+                    # creates [x,y] dictionary for entityID
+                    self.data[entityID] = {'x': [], 'y': []}
+                    self.entitylist.append(entityID)
+
+                # add data points to the entity
+                elif line.startswith(' '):
+                    # parse line
+                    datapoint = [float(i) for i in line.split(' ') if i != '']
+                    del datapoint[0]
+
+                    #add data to class data attribute
+                    self.data[entityID]['x'].append(datapoint[0])
+                    self.data[entityID]['y'].append(datapoint[1])
+
+    def get_entity_list(self):
+        return(self.entitylist)
+
+    def get_x_data(self, entityID):
+        return(self.data[entityID]['x'])
+
+    def get_y_data(self, entityID):
+        return(self.data[entityID]['y'])
