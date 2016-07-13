@@ -1,4 +1,5 @@
 import cmath
+import matplotlib.pyplot as plt
 
 CONST_VALID_REQUESTS = ['ACCELERATION', 'DISPLACEMENTS', 'MPCF', 'SPCF', 'ELEMENT FORCES', 'ELEMENT STRAINS']
 
@@ -60,7 +61,8 @@ class PchParser:
                     continue
 
                 # parse the subcase
-                if line.startswith('$SUBCASE ID ='):
+                if line.startswith('$SUBCASE ID =') or \
+                        line.startswith('$RANDOM ID ='):
                     self.cur_subcase = int(line[13:].strip())
                     self.parsed_data['SUBCASES'].add(self.cur_subcase)
 
@@ -183,11 +185,10 @@ class PchParser:
             raise KeyError('%s data for subase %s is not found' % (request, subcase))
 
     def get_accelerations(self, subcase, entityID=None, component=None):
-        if (entityID == None and component != entityID) or \
-                (component == None and entityID != component):
+        if (entityID != component) and (entityID == None or component == None):
             raise KeyError("Need both Entity ID and direction component")
 
-        elif entityID == None and component == None:
+        elif entityID == None:
             return self.__get_data_per_request('ACCELERATION', subcase)
 
         elif component == 'tx':
@@ -262,7 +263,7 @@ class SimplePch:
                 if line.startswith('$'):
                     entityID = int([i for i in line.split(' ') if i != ''][2])
 
-                    # creates dictionary for entityID
+                    # creates domain and range dictionary for entityID
                     self.data[entityID] = {'domain': [], 'range': []}
                     self.entitylist.append(entityID)
 
@@ -284,3 +285,46 @@ class SimplePch:
 
     def get_range(self, entityID):
         return(self.data[entityID]['range'])
+
+    def get_plot(self, entityID, fig_num=1, xscale='linear', yscale='linear'):
+        """Plot data for single entity using matplotlib.pyplot
+
+        Returns:
+            matplotlib.pyplot.plot object
+
+        """
+
+        # create figure
+        plt.figure(fig_num)
+
+        # define domain and range
+        plot_domain = self.get_domain(entityID)
+        plot_range = self.get_range(entityID)
+
+        # plot domain and range to figure
+        plt.plot(plot_domain, plot_range, label=entityID)
+
+        # setup plot
+        plt.legend(loc='upper left')
+        plt.figure(fig_num).add_subplot(1,1,1).set_xscale(xscale)
+        plt.figure(fig_num).add_subplot(1,1,1).set_yscale(yscale)
+
+        # show figure
+        return plt.figure(fig_num)
+
+    def get_plot_all(self, fig_num, xscale='linear', yscale='linear'):
+        """Plot data for all entities on single plot using
+        matplotlib.pyplot
+
+        Returns:
+            matplotlib.pyplot.plot object
+
+        """
+
+        for each in self.get_entity_list():
+            self.get_plot(each, fig_num)
+
+        # setup plot
+        plt.legend(loc='upper left')
+        plt.figure(fig_num).add_subplot(1,1,1).set_xscale(xscale)
+        plt.figure(fig_num).add_subplot(1,1,1).set_yscale(yscale)
