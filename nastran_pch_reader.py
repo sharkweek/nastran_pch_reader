@@ -262,8 +262,8 @@ class SimplePch:
                 if line.startswith('$'):
                     entityID = int([i for i in line.split(' ') if i != ''][2])
 
-                    # creates [x,y] dictionary for entityID
-                    self.data[entityID] = {'x': [], 'y': []}
+                    # creates dictionary for entityID
+                    self.data[entityID] = {'domain': [], 'range': []}
                     self.entitylist.append(entityID)
 
                 # add data points to the entity
@@ -273,14 +273,14 @@ class SimplePch:
                     del datapoint[0]
 
                     #add data to class data attribute
-                    self.data[entityID]['x'].append(datapoint[0])
-                    self.data[entityID]['y'].append(datapoint[1])
+                    self.data[entityID]['domain'].append(datapoint[0])
+                    self.data[entityID]['range'].append(datapoint[1])
 
     def get_entity_list(self):
         return(self.entitylist)
 
-    def get_x_data(self, entityID):
-        return(self.data[entityID]['x'])
+    def get_domain(self, entityID):
+        return(self.data[entityID]['domain'])
 
-    def get_y_data(self, entityID):
-        return(self.data[entityID]['y'])
+    def get_range(self, entityID):
+        return(self.data[entityID]['range'])
