@@ -337,25 +337,47 @@ class SimplePch:
         plt.figure(fig_num).add_subplot(1,1,1).set_xscale(xscale)
         plt.figure(fig_num).add_subplot(1,1,1).set_yscale(yscale)
 
-    def export(self, targetfile):
+    def export(self, targetfile, stacked=True):
         """Export data to CSV file"""
 
-        with open(targetfile, 'w', newline='') as csvfile:
+        if stacked:
+            with open(targetfile, 'w', newline='') as csvfile:
 
-            fields = ['entity', 'domain', 'range']
-            writer = csv.DictWriter(csvfile,
-                                    fieldnames=fields,
-                                    dialect='excel',
-                                    delimiter=',')
+                fields = ['domain'] + list(self.data.keys())
+                writer = csv.DictWriter(csvfile,
+                                        fieldnames=fields,
+                                        dialect='excel',
+                                        delimiter=',')
 
-            writer.writeheader()
+                writer.writeheader()
 
-            for entity in self.get_entity_list():
-                d = self.get_domain(entity)
-                r = self.get_range(entity)
+                firstdomain = self.get_domain(self.get_entity_list()[0])
 
-                # write in each row
-                for i, j in zip(d, r):
-                    writer.writerow({'entity': entity,
-                                     'domain': i,
-                                     'range': j})
+                for x, y in enumerate(firstdomain):
+                    d = {'domain': y}
+
+                    for entity in self.data:
+                        d[entity] = self.data[entity]['range'][x]
+
+                    writer.writerow(d)
+
+        else:
+            with open(targetfile, 'w', newline='') as csvfile:
+
+                fields = ['entity', 'domain', 'range']
+                writer = csv.DictWriter(csvfile,
+                                        fieldnames=fields,
+                                        dialect='excel',
+                                        delimiter=',')
+
+                writer.writeheader()
+
+                for entity in self.get_entity_list():
+                    d = self.get_domain(entity)
+                    r = self.get_range(entity)
+
+                    # write in each row
+                    for i, j in zip(d, r):
+                        writer.writerow({'entity': entity,
+                                         'domain': i,
+                                         'range': j})
