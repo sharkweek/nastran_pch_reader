@@ -1,5 +1,6 @@
 import cmath
 import matplotlib.pyplot as plt
+import csv
 
 CONST_VALID_REQUESTS = ['ACCELERATION', 'DISPLACEMENTS', 'MPCF', 'SPCF', 'ELEMENT FORCES', 'ELEMENT STRAINS']
 
@@ -278,12 +279,19 @@ class SimplePch:
                     self.data[entityID]['range'].append(datapoint[1])
 
     def get_entity_list(self):
+        """Get a list of each entity (node, element, etc.) in the simple
+        punch file."""
+
         return(self.entitylist)
 
     def get_domain(self, entityID):
+        """Get a list of all values in the domain of the simple punch file"""
+
         return(self.data[entityID]['domain'])
 
     def get_range(self, entityID):
+        """Get a list of all values in the range of the simple punch file"""
+
         return(self.data[entityID]['range'])
 
     def get_plot(self, entityID, fig_num=1, xscale='linear', yscale='linear'):
@@ -328,3 +336,26 @@ class SimplePch:
         plt.legend(loc='upper left')
         plt.figure(fig_num).add_subplot(1,1,1).set_xscale(xscale)
         plt.figure(fig_num).add_subplot(1,1,1).set_yscale(yscale)
+
+    def export(self, targetfile):
+        """Export data to CSV file"""
+
+        with open(targetfile, 'w', newline='') as csvfile:
+
+            fields = ['entity', 'domain', 'range']
+            writer = csv.DictWriter(csvfile,
+                                    fieldnames=fields,
+                                    dialect='excel',
+                                    delimiter=',')
+
+            writer.writeheader()
+
+            for entity in self.get_entity_list():
+                d = self.get_domain(entity)
+                r = self.get_range(entity)
+
+                # write in each row
+                for i, j in zip(d, r):
+                    writer.writerow({'entity': entity,
+                                     'domain': i,
+                                     'range': j})
