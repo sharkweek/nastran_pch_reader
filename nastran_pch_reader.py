@@ -245,9 +245,13 @@ class PchParser:
 
 
 class SimplePch:
-    """Parser for a simple punch file with no headers. Useful for random
-    vibration punch output.
-    """
+    """Parser for a simple punch file with no `$SUBCASE` headers and a single
+    data type (e.g. acceleration, displacement, etc.).
+
+    The file may have multiple entities (i.e. nodes or elements), but only a
+    single load case. This type of punch file results from ommiting the PUNCH
+    callout in the case control load request meanwhile adding an
+    OUTPUT(XYPLOT) statement requesting punch results """
 
     def __init__(self, filename):
         # initiate dictionary
