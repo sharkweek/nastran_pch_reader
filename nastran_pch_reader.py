@@ -265,7 +265,10 @@ class SimplePch:
                 line = line[0:72]
 
                 # check for new entity ID
-                if line.startswith('$'):
+                if line.startswith('$SUBCASE'):
+                    continue
+
+                elif line.startswith('$'):
                     entityID = int([i for i in line.split(' ') if i != ''][2])
 
                     # creates domain and range dictionary for entityID
